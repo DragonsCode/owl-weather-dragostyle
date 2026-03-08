@@ -1,3 +1,7 @@
-<resources>
-    <string name="app_name">OWeather</string>
+﻿<resources>
+    <string name="app_name">Weather Forecast App</string>
+    <string name="google_maps_key">ADD_YOUR_MAPS_API_KEY_HERE</string>
+    <string name="maps_setup_title">Карта недоступна</string>
+    <string name="maps_setup_message">Добавьте Google Maps API Key в `app/src/main/res/values/strings.xml` (поле google_maps_key), затем пересоберите приложение.</string>
+    <string name="open_maps_docs">Открыть инструкцию</string>
 </resources>

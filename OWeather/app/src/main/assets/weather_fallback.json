@@ -1,0 +1,16 @@
+﻿{
+  "current": {
+    "temperature": 21.0,
+    "windSpeed": 4.8,
+    "weatherCode": 2
+  },
+  "daily": [
+    { "offsetDays": 0, "temperatureMax": 24.0, "temperatureMin": 17.0, "weatherCode": 2 },
+    { "offsetDays": 1, "temperatureMax": 26.0, "temperatureMin": 18.0, "weatherCode": 1 },
+    { "offsetDays": 2, "temperatureMax": 23.0, "temperatureMin": 16.0, "weatherCode": 61 },
+    { "offsetDays": 3, "temperatureMax": 22.0, "temperatureMin": 15.0, "weatherCode": 63 },
+    { "offsetDays": 4, "temperatureMax": 20.0, "temperatureMin": 14.0, "weatherCode": 45 },
+    { "offsetDays": 5, "temperatureMax": 19.0, "temperatureMin": 12.0, "weatherCode": 71 },
+    { "offsetDays": 6, "temperatureMax": 25.0, "temperatureMin": 17.0, "weatherCode": 0 }
+  ]
+}
