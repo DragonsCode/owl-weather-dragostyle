@@ -14,9 +14,9 @@ import javax.inject.Singleton
 class FallbackWeatherDataSource @Inject constructor(
     @ApplicationContext private val context: Context,
     private val gson: Gson
-) {
+) : WeatherFallbackDataSource {
 
-    fun loadFallbackForecast(
+    override fun loadFallbackForecast(
         cityKey: String,
         cityName: String,
         latitude: Double,
@@ -44,7 +44,8 @@ class FallbackWeatherDataSource @Inject constructor(
                 currentWindSpeed = fallback.current.windSpeed,
                 weatherCode = fallback.current.weatherCode,
                 daily = daily,
-                updatedAt = System.currentTimeMillis(),
+                // Demo assets have no real observation timestamp.
+                updatedAt = 0L,
                 source = ForecastSource.FALLBACK_ASSET
             )
         }.getOrNull()

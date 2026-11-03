@@ -31,7 +31,13 @@ Android-приложение прогноза погоды на Kotlin + Jetpack
 ### Offline-first
 - При запуске и просмотре городов читается локальный кэш из Room.
 - После отображения кэша выполняется обновление из сети.
-- При сетевой ошибке используется fallback из `assets/weather_fallback.json`.
+- При сетевой ошибке сохраняется реальный кэш и исходное время получения данных.
+- Только при отсутствии реального кэша показываются демонстрационные данные из
+  `assets/weather_fallback.json`. Они одинаковы для всех городов, явно помечены
+  как демо и не записываются в Room; это не прогноз погоды для выбранного города.
+- Карточка различает сеть, сохранённый прогноз и демо. Старые записи демо,
+  созданные предыдущей версией, сохраняют эту отметку и не считаются реальным кэшем.
+- HTTP URL logging отключён, чтобы координаты не попадали в диагностические логи.
 
 ### Permissions
 - `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `INTERNET` в `AndroidManifest.xml`.
@@ -70,7 +76,9 @@ Android-приложение прогноза погоды на Kotlin + Jetpack
 
 1. Откройте проект в Android Studio.
 2. Убедитесь, что установлен Android SDK для `compileSdk 36`.
-3. Sync Gradle.
+3. Выберите JDK 21 в настройках Gradle Android Studio или задайте `JAVA_HOME`
+   в своей системе. Абсолютный путь к локальному JDK не должен попадать в
+   отслеживаемый `gradle.properties`. Выполните Sync Gradle.
 4. Соберите проект:
    ```bash
    ./gradlew :app:assembleDebug
@@ -110,3 +118,15 @@ Android-приложение прогноза погоды на Kotlin + Jetpack
 - `app/src/main/java/com/example/oweather/data/repository/WeatherRepositoryImpl.kt`
 - `app/src/main/java/com/example/oweather/data/local/AppDatabase.kt`
 - `app/src/main/assets/weather_fallback.json`
+
+## 8. Проверка offline-поведения
+
+`./gradlew :app:testDebugUnitTest` запускает тесты с fake API/DAO/источником демо:
+сохранение настоящего кэша и timestamp, отсутствие записи демо, маркировка старых
+демо-записей, успешный сетевой ответ, ошибка без данных и отмена корутины.
+Отдельно проверяются подписи источника данных. Эти unit tests не проверяют
+Room SQLite, Hilt generation или отображение Compose на устройстве.
+
+Для проверки приложения нужны Android SDK 36 и JDK 21; затем выполните
+`./gradlew :app:assembleDebug :app:lintDebug :app:testDebugUnitTest`.
+На устройстве проверьте обновление с сетью, offline с кэшем и offline без кэша.

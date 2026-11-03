@@ -2,11 +2,12 @@
 
 import com.example.oweather.core.model.ForecastSource
 import com.example.oweather.core.model.WeatherForecast
-import com.example.oweather.data.fallback.FallbackWeatherDataSource
+import com.example.oweather.data.fallback.WeatherFallbackDataSource
 import com.example.oweather.data.local.dao.WeatherCacheDao
 import com.example.oweather.data.remote.OpenMeteoWeatherApi
 import com.example.oweather.domain.repository.WeatherRepository
 import com.google.gson.Gson
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
@@ -17,13 +18,19 @@ import javax.inject.Singleton
 class WeatherRepositoryImpl @Inject constructor(
     private val weatherApi: OpenMeteoWeatherApi,
     private val weatherCacheDao: WeatherCacheDao,
-    private val fallbackSource: FallbackWeatherDataSource,
+    private val fallbackSource: WeatherFallbackDataSource,
     private val gson: Gson
 ) : WeatherRepository {
 
     override fun observeWeather(cityKey: String): Flow<WeatherForecast?> {
         return weatherCacheDao.observeByCityKey(cityKey)
-            .map { entity -> entity?.toDomain(gson) }
+            .map { entity ->
+                entity?.toDomain(gson)?.let { weather ->
+                    // Older app versions persisted demo assets; keep their demo label.
+                    if (weather.source == ForecastSource.FALLBACK_ASSET) weather
+                    else weather.copy(source = ForecastSource.CACHE)
+                }
+            }
     }
 
     override suspend fun refreshWeather(
@@ -43,7 +50,13 @@ class WeatherRepositoryImpl @Inject constructor(
             weatherCacheDao.upsert(weather.toCacheEntity(gson))
             Result.success(weather)
         } catch (networkError: Exception) {
-            Timber.w(networkError, "Network weather refresh failed for %s", cityName)
+            if (networkError is CancellationException) throw networkError
+            Timber.w("Network weather refresh failed")
+
+            val cached = weatherCacheDao.getByCityKey(cityKey)?.toDomain(gson)
+                ?.takeUnless { it.source == ForecastSource.FALLBACK_ASSET }
+                ?.copy(source = ForecastSource.CACHE)
+            if (cached != null) return Result.success(cached)
 
             val fallback = fallbackSource.loadFallbackForecast(
                 cityKey = cityKey,
@@ -53,18 +66,11 @@ class WeatherRepositoryImpl @Inject constructor(
             )
 
             if (fallback != null) {
-                weatherCacheDao.upsert(fallback.toCacheEntity(gson))
+                // Demonstration data must never replace a real observation in Room.
                 return Result.success(fallback)
             }
 
-            val cached = weatherCacheDao.getByCityKey(cityKey)?.toDomain(gson)
-                ?.copy(source = ForecastSource.CACHE)
-
-            if (cached != null) {
-                Result.success(cached)
-            } else {
-                Result.failure(networkError)
-            }
+            Result.failure(networkError)
         }
     }
 }

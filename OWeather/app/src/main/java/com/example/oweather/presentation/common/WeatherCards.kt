@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.example.oweather.core.model.DailyForecast
 import com.example.oweather.core.model.WeatherForecast
 import com.example.oweather.core.util.formatIsoDate
-import com.example.oweather.core.util.formatTimestamp
+import com.example.oweather.core.util.formatForecastSource
 import com.example.oweather.core.util.mapWeatherCode
 
 @Composable
@@ -71,7 +71,7 @@ fun CurrentWeatherCard(
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "Обновлено: ${formatTimestamp(weather.updatedAt)}",
+                text = formatForecastSource(weather),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
